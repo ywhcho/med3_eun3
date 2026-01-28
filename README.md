@@ -219,3 +219,98 @@ mv bootstrap-5.3.0-dist bootstrap
 
 그런 다음 `templates/base.html`에서 CDN 링크를 로컬 파일 경로로 변경하세요.
 
+
+## 프로덕션 배포 체크리스트
+
+프로덕션 환경에 배포하기 전에 다음 사항을 확인하세요:
+
+### 필수 보안 설정
+
+1. **DEBUG 모드 비활성화**
+   ```env
+   DEBUG=False
+   ```
+
+2. **SECRET_KEY 생성**
+   ```python
+   # Python으로 안전한 SECRET_KEY 생성
+   from django.core.management.utils import get_random_secret_key
+   print(get_random_secret_key())
+   ```
+
+3. **ALLOWED_HOSTS 설정**
+   ```env
+   ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+   ```
+
+4. **HTTPS 설정** (settings.py에 추가)
+   ```python
+   SECURE_SSL_REDIRECT = True
+   SESSION_COOKIE_SECURE = True
+   CSRF_COOKIE_SECURE = True
+   SECURE_HSTS_SECONDS = 31536000
+   SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+   SECURE_HSTS_PRELOAD = True
+   ```
+
+5. **정적 파일 수집**
+   ```bash
+   python manage.py collectstatic
+   ```
+
+6. **데이터베이스 백업 설정**
+   - 정기적인 데이터베이스 백업 스케줄 설정
+   - 백업 파일을 안전한 위치에 보관
+
+### 권장 사항
+
+- Gunicorn 또는 uWSGI 같은 WSGI 서버 사용
+- Nginx 또는 Apache를 리버스 프록시로 사용
+- 환경 변수를 안전하게 관리 (환경 변수 파일은 .gitignore에 포함)
+- 로그 모니터링 설정
+- 에러 추적 도구 (Sentry 등) 연동
+
+## 트러블슈팅
+
+### mysqlclient 설치 오류
+
+MySQL을 사용할 경우 `mysqlclient` 설치 시 오류가 발생할 수 있습니다:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install python3-dev default-libmysqlclient-dev build-essential
+pip install mysqlclient
+```
+
+**macOS:**
+```bash
+brew install mysql
+pip install mysqlclient
+```
+
+**Windows:**
+- Visual C++ Build Tools 설치 필요
+- 또는 미리 컴파일된 wheel 파일 사용
+
+### 정적 파일이 로드되지 않는 경우
+
+개발 서버에서:
+```python
+# settings.py에 확인
+DEBUG = True
+```
+
+프로덕션에서:
+```bash
+python manage.py collectstatic
+# Nginx/Apache에서 /static/ 경로 설정
+```
+
+## 스크린샷
+
+### 홈페이지
+![홈페이지](https://github.com/user-attachments/assets/b4d7ff5c-bb11-43a0-a357-b0b651adafac)
+
+### 의약품 상세 정보
+![의약품 상세](https://github.com/user-attachments/assets/eaf58744-9867-423a-b552-c919bb5109f7)
+
