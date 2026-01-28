@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ medicine.name }} - 의약품 정보 시스템{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">홈</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'medicines:search' %}">의약정보 검색</a></li>
+                <li class="breadcrumb-item active">{{ medicine.name }}</li>
+            </ol>
+        </nav>
+
+        <h1 class="display-5 mb-4">{{ medicine.name }}</h1>
+
+        <!-- 기본 정보 -->
+        <div class="detail-section">
+            <h4>기본 정보</h4>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th style="width: 200px;">제품명</th>
+                        <td>{{ medicine.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>제조회사</th>
+                        <td>{{ medicine.company.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>성분</th>
+                        <td>
+                            {% for ingredient in medicine.ingredients.all %}
+                            <span class="badge bg-info me-1">{{ ingredient.name }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>효능</th>
+                        <td>
+                            {% for efficacy in medicine.efficacies.all %}
+                            <span class="badge bg-success me-1">{{ efficacy.name }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% if medicine.approval_number %}
+                    <tr>
+                        <th>허가번호</th>
+                        <td>{{ medicine.approval_number }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if medicine.approval_date %}
+                    <tr>
+                        <th>허가일자</th>
+                        <td>{{ medicine.approval_date|date:"Y년 m월 d일" }}</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 용법용량 -->
+        {% if medicine.dosage %}
+        <div class="detail-section">
+            <h4>용법용량</h4>
+            <p>{{ medicine.dosage|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        <!-- 주의사항 -->
+        {% if medicine.precautions %}
+        <div class="detail-section">
+            <h4>주의사항</h4>
+            <p>{{ medicine.precautions|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        <!-- 부작용 -->
+        {% if medicine.side_effects %}
+        <div class="detail-section">
+            <h4>부작용</h4>
+            <p>{{ medicine.side_effects|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        <!-- 보관방법 -->
+        {% if medicine.storage %}
+        <div class="detail-section">
+            <h4>보관방법</h4>
+            <p>{{ medicine.storage }}</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="{% url 'medicines:search' %}" class="btn btn-secondary">목록으로</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
