@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}의약정보 검색 - 의약품 정보 시스템{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">의약정보 검색</h1>
+
+<div class="search-section">
+    <ul class="nav nav-tabs search-tabs mb-4" id="searchTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if not search_type or search_type == 'ingredient' %}active{% endif %}" 
+                    id="ingredient-tab" data-bs-toggle="tab" data-bs-target="#ingredient" 
+                    type="button" role="tab">성분별 검색</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if search_type == 'company' %}active{% endif %}" 
+                    id="company-tab" data-bs-toggle="tab" data-bs-target="#company" 
+                    type="button" role="tab">회사별 검색</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if search_type == 'efficacy' %}active{% endif %}" 
+                    id="efficacy-tab" data-bs-toggle="tab" data-bs-target="#efficacy" 
+                    type="button" role="tab">효능별 검색</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="searchTabsContent">
+        <!-- 성분별 검색 -->
+        <div class="tab-pane fade {% if not search_type or search_type == 'ingredient' %}show active{% endif %}" 
+             id="ingredient" role="tabpanel">
+            <h4>성분별 검색</h4>
+            <form method="get" action="{% url 'medicines:search' %}" class="mb-3">
+                <input type="hidden" name="type" value="ingredient">
+                <div class="row">
+                    <div class="col-md-10">
+                        <select name="id" class="form-select" required>
+                            <option value="">성분을 선택하세요</option>
+                            {% for ingredient in ingredients %}
+                            <option value="{{ ingredient.id }}" {% if selected_id|stringformat:"i" == ingredient.id|stringformat:"i" and search_type == 'ingredient' %}selected{% endif %}>
+                                {{ ingredient.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">검색</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 회사별 검색 -->
+        <div class="tab-pane fade {% if search_type == 'company' %}show active{% endif %}" 
+             id="company" role="tabpanel">
+            <h4>회사별 검색</h4>
+            <form method="get" action="{% url 'medicines:search' %}" class="mb-3">
+                <input type="hidden" name="type" value="company">
+                <div class="row">
+                    <div class="col-md-10">
+                        <select name="id" class="form-select" required>
+                            <option value="">회사를 선택하세요</option>
+                            {% for company in companies %}
+                            <option value="{{ company.id }}" {% if selected_id|stringformat:"i" == company.id|stringformat:"i" and search_type == 'company' %}selected{% endif %}>
+                                {{ company.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">검색</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 효능별 검색 -->
+        <div class="tab-pane fade {% if search_type == 'efficacy' %}show active{% endif %}" 
+             id="efficacy" role="tabpanel">
+            <h4>효능별 검색</h4>
+            <form method="get" action="{% url 'medicines:search' %}" class="mb-3">
+                <input type="hidden" name="type" value="efficacy">
+                <div class="row">
+                    <div class="col-md-10">
+                        <select name="id" class="form-select" required>
+                            <option value="">효능을 선택하세요</option>
+                            {% for efficacy in efficacies %}
+                            <option value="{{ efficacy.id }}" {% if selected_id|stringformat:"i" == efficacy.id|stringformat:"i" and search_type == 'efficacy' %}selected{% endif %}>
+                                {{ efficacy.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">검색</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 검색 결과 -->
+{% if medicines %}
+<h3 class="mb-3">검색 결과 (총 {{ page_obj.paginator.count }}건)</h3>
+<div class="list-group medicine-list mb-4">
+    {% for medicine in medicines %}
+    <a href="{% url 'medicines:detail' medicine.id %}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ medicine.name }}</h5>
+            <small>{{ medicine.company.name }}</small>
+        </div>
+        <p class="mb-1">
+            <span class="badge bg-info badge-custom">
+                성분: {% for ing in medicine.ingredients.all %}{{ ing.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </span>
+            <span class="badge bg-success badge-custom">
+                효능: {% for eff in medicine.efficacies.all %}{{ eff.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </span>
+        </p>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?type={{ search_type }}&id={{ selected_id }}&page=1">처음</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?type={{ search_type }}&id={{ selected_id }}&page={{ page_obj.previous_page_number }}">이전</a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?type={{ search_type }}&id={{ selected_id }}&page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?type={{ search_type }}&id={{ selected_id }}&page={{ page_obj.next_page_number }}">다음</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?type={{ search_type }}&id={{ selected_id }}&page={{ page_obj.paginator.num_pages }}">마지막</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endif %}
+
+{% if search_type and not medicines %}
+<div class="alert alert-warning">
+    검색 결과가 없습니다.
+</div>
+{% endif %}
+{% endblock %}
